@@ -1,0 +1,20 @@
+node_modules/
+dist/
+
+# Ignore Maven build output
+target/
+
+# Ignore IDE settings
+.idea/
+.vscode/
+*.iml
+
+# Ignore system files
+.DS_Store
+
+# Ignore logs
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp

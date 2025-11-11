@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Admin Dashboard</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/react@16.8.6/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16.8.6/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const studentsData = [
+        { usn: "1NT22CS001", name: "Aarav", percentage: 66 },
+        { usn: "1NT22CS002", name: "Ishaan", percentage: 82 },
+        { usn: "1NT22CS003", name: "Rohan", percentage: 58 },
+        { usn: "1NT22CS004", name: "Kiran", percentage: 82 },
+        { usn: "1NT22CS005", name: "Saanvi", percentage: 51 },
+        { usn: "1NT22CS006", name: "Meera", percentage: 63 },
+        { usn: "1NT22CS007", name: "Priya", percentage: 87 },
+        { usn: "1NT22CS008", name: "Kavya", percentage: 92 },
+        { usn: "1NT22CS009", name: "Vikram", percentage: 71 },
+        { usn: "1NT22CS010", name: "Ananya", percentage: 77 },
+        { usn: "1NT22CS011", name: "Arjun", percentage: 55 },
+        { usn: "1NT22CS012", name: "Neha", percentage: 90 },
+        { usn: "1NT22CS013", name: "Ritu", percentage: 65 },
+        { usn: "1NT22CS014", name: "Dev", percentage: 74 },
+        { usn: "1NT22CS015", name: "Lakshmi", percentage: 85 },
+        { usn: "1NT22CS016", name: "Rahul", percentage: 98 },
+        { usn: "1NT22CS017", name: "Pooja", percentage: 69 },
+        { usn: "1NT22CS018", name: "Rakesh", percentage: 88 },
+        { usn: "1NT22CS019", name: "Sneha", percentage: 79 },
+        { usn: "1NT22CS020", name: "Varun", percentage: 61 },
+        { usn: "1NT22CS021", name: "Aditya", percentage: 83 },
+        { usn: "1NT22CS022", name: "Nisha", percentage: 72 },
+        { usn: "1NT22CS023", name: "Manoj", percentage: 94 },
+        { usn: "1NT22CS024", name: "Divya", percentage: 68 },
+        { usn: "1NT22CS025", name: "Vani", percentage: 59 },
+        { usn: "1NT22CS026", name: "Prakash", percentage: 86 },
+        { usn: "1NT22CS027", name: "Suresh", percentage: 73 },
+        { usn: "1NT22CS028", name: "Deepa", percentage: 81 },
+        { usn: "1NT22CS029", name: "Harsha", percentage: 64 },
+        { usn: "1NT22CS030", name: "Geeta", percentage: 91 },
+      ];
+      function Header() {
+        return (
+          <>
+            <h2> NMIT-Admin Dashboard</h2>
+          </>
+        );
+      }
+      function Markstable({ data }) {
+        return (
+          <>
+            <h2>Student Marks</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>SL.NO</th>
+                  <th>USN</th>
+                  <th>Name</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((student, i) => {
+                  return (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>{student.usn}</td>
+                      <td>{student.name}</td>
+                      <td>{student.percentage}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        );
+      }
+      function Summary({ data }) {
+        const distinction = data.filter((s) => s.percentage >= 85).length;
+        const firstClass = data.filter(
+          (s) => s.percentage >= 60 && s.percentage < 85
+        ).length;
+        const fail = data.filter((s) => s.percentage < 60).length;
+        return (
+          <div
+            className="summary"
+            style={{ textAlign: "center", marginTop: "20px" }}
+          >
+            <h3>Result Summary</h3>
+            <p>
+              Distinction: <strong>{distinction}</strong>
+            </p>
+            <p>
+              First Class: <strong>{firstClass}</strong>
+            </p>
+            <p>
+              Fail: <strong>{fail}</strong>
+            </p>
+          </div>
+        );
+      }
+      function Footer() {
+        return <></>;
+      }
+      <p style={{ textAlign: "center", marginTop: "20px", color: "blue" }}>
+        {" "}
+        @2025 Admin Dashboard
+      </p>;
+      function DashBoard({ data }) {
+        const [showSummary, setShowSummary] = React.useState(false);
+        const toggleSummary = () => {
+          setShowSummary(!showSummary);
+        };
+        return (
+          <>
+            <Header />
+            <Markstable data={data} />
+            <div style={{ textAlign: "center" }}>
+              <button onClick={toggleSummary}>Show Summary</button>
+              <button onClick={() => setShowSummary(false)}>Clear</button>
+            </div>
+            {showSummary && <Summary data={data} />}
+            <Footer />
+          </>
+        );
+      }
+      ReactDOM.render(
+        <DashBoard data={studentsData} />,
+        document.getElementById("root")
+      );
+    </script>
+  </body>
+</html>
