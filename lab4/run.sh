@@ -34,5 +34,11 @@ if [ $? -ne 0 ]; then
 fi
 
 # Step 5: Run application
-mvn exec:java -Dexec.mainClass="$APP_MAIN_CLASS"
+mvn exec:java -Dexec.mainClass="lab4.DependencyInjectionApplication"
+
+# commadns for execution
+
+# chmod +x run.sh
+# mvn clean compile -q
+# mvn exec:java -Dexec.mainClass="lab4.DependencyInjectionApplication"
 

@@ -14,7 +14,7 @@ function App() {
       return;
     }
 
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const regex = /\S+@\S+\.\S+/;
     if (regex.test(emailInput)) {
       setValidEmail(true);
       setFeedbackMessage("Valid email address!");
