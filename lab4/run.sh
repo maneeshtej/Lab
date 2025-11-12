@@ -3,8 +3,6 @@
 
 APP_MAIN_CLASS="lab4.DependencyInjectionApplication"
 
-echo "=== Spring DI Runner ==="
-
 # Step 1: Check for Java
 if ! command -v java &> /dev/null
 then
@@ -28,7 +26,6 @@ mvn -v | head -n 1
 echo ""
 
 # Step 4: Clean and compile
-echo "Compiling project..."
 mvn clean compile -q
 
 if [ $? -ne 0 ]; then
@@ -37,9 +34,5 @@ if [ $? -ne 0 ]; then
 fi
 
 # Step 5: Run application
-echo ""
-echo "Running Spring Dependency Injection Application..."
-echo "----------------------------------------------"
 mvn exec:java -Dexec.mainClass="$APP_MAIN_CLASS"
-echo "----------------------------------------------"
-echo "✅ Done!"
+
