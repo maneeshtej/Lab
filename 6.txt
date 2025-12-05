@@ -1,0 +1,181 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <omp.h>
+#include <math.h>
+
+
+// Allocate matrix
+double **allocate_matrix(int N) {
+    double **mat = malloc(N * sizeof(double *));
+    for (int i = 0; i < N; i++)
+        mat[i] = malloc(N * sizeof(double));
+    return mat;
+}
+
+
+// Free matrix
+void free_matrix(double **mat, int N) {
+    for (int i = 0; i < N; i++)
+        free(mat[i]);
+    free(mat);
+}
+
+
+// Initialize matrix with random values
+void initialize_matrix(double **mat, int N) {
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            mat[i][j] = (rand() / (double)RAND_MAX) * 10.0;
+}
+
+
+// Sequential multiplication
+void matmul_seq(double **A, double **B, double **C, int N) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            double sum = 0.0;
+            for (int k = 0; k < N; k++)
+                sum += A[i][k] * B[k][j];
+            C[i][j] = sum;
+        }
+    }
+}
+
+
+// Parallel without collapse
+void matmul_parallel_no_collapse(double **A, double **B, double **C,
+                                 int N, const char* schedule_type, int chunk) {
+
+
+    omp_sched_t sched;
+    if (strcmp(schedule_type,"static") == 0)      sched = omp_sched_static;
+    else if (strcmp(schedule_type,"dynamic") == 0) sched = omp_sched_dynamic;
+    else if (strcmp(schedule_type,"guided") == 0)  sched = omp_sched_guided;
+    else sched = omp_sched_static;
+
+
+    omp_set_schedule(sched, chunk);
+
+
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(runtime) nowait
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                double sum = 0.0;
+                for (int k = 0; k < N; k++)
+                    sum += A[i][k] * B[k][j];
+                C[i][j] = sum;
+            }
+        }
+    }
+}
+
+
+// Parallel with collapse(2)
+void matmul_parallel_collapse(double **A, double **B, double **C,
+                              int N, const char* schedule_type, int chunk) {
+
+
+    omp_sched_t sched;
+    if (strcmp(schedule_type,"static") == 0)      sched = omp_sched_static;
+    else if (strcmp(schedule_type,"dynamic") == 0) sched = omp_sched_dynamic;
+    else if (strcmp(schedule_type,"guided") == 0)  sched = omp_sched_guided;
+    else sched = omp_sched_static;
+
+
+    omp_set_schedule(sched, chunk);
+
+
+    #pragma omp parallel
+    {
+        #pragma omp for collapse(2) schedule(runtime) nowait
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                double sum = 0.0;
+                for (int k = 0; k < N; k++)
+                    sum += A[i][k] * B[k][j];
+                C[i][j] = sum;
+            }
+        }
+    }
+}
+
+
+// Compare matrix results for correctness
+int compare(double **M1, double **M2, int N) {
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            if (fabs(M1[i][j] - M2[i][j]) > 1e-6) return 0;
+    return 1;
+}
+
+
+int main() {
+    int N;
+    char schedule_type[10];
+    int chunk;
+
+
+    printf("Enter matrix size (e.g., 500, 1000, 1500): ");
+    scanf("%d", &N);
+
+
+    printf("Enter schedule type (static/dynamic/guided): ");
+    scanf("%s", schedule_type);
+
+
+    printf("Enter chunk size: ");
+    scanf("%d", &chunk);
+
+
+    double **A = allocate_matrix(N);
+    double **B = allocate_matrix(N);
+    double **C_seq = allocate_matrix(N);
+    double **C_par = allocate_matrix(N);
+    double **C_par2 = allocate_matrix(N);
+
+
+    initialize_matrix(A, N);
+    initialize_matrix(B, N);
+
+
+    double start, end;
+
+
+    // Sequential
+    start = omp_get_wtime();
+    matmul_seq(A, B, C_seq, N);
+    end = omp_get_wtime();
+    printf("\nSequential Time = %f seconds\n", end - start);
+
+
+    // Parallel no collapse
+    start = omp_get_wtime();
+    matmul_parallel_no_collapse(A, B, C_par, N, schedule_type, chunk);
+    end = omp_get_wtime();
+    printf("Parallel (no collapse) Time = %f seconds\n", end - start);
+
+
+    // Parallel with collapse
+    start = omp_get_wtime();
+    matmul_parallel_collapse(A, B, C_par2, N, schedule_type, chunk);
+    end = omp_get_wtime();
+    printf("Parallel (collapse(2)) Time = %f seconds\n", end - start);
+
+
+    // Validate
+    printf("\nNo-collapse correct? %s\n", compare(C_seq, C_par, N) ? "YES" : "NO");
+    printf("Collapse correct? %s\n", compare(C_seq, C_par2, N) ? "YES" : "NO");
+
+
+    free_matrix(A, N);
+    free_matrix(B, N);
+    free_matrix(C_seq, N);
+    free_matrix(C_par, N);
+    free_matrix(C_par2, N);
+
+
+    return 0;
+}

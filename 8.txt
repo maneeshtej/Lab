@@ -1,0 +1,100 @@
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+int main(int argc, char *argv[]) {
+
+
+    MPI_Init(&argc, &argv);
+
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+    if (rank == 0)
+        printf("MPI Collectives Demo with %d processes\n\n", size);
+
+
+    // -------------------- Broadcast --------------------
+    int bcast_val = 0;
+    if (rank == 0) bcast_val = 123;
+    MPI_Bcast(&bcast_val, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf("[rank %d] got after Bcast = %d\n", rank, bcast_val);
+
+
+    // -------------------- Scatter --------------------
+    int scatter_val;
+    int *scatter_buf = NULL;
+
+
+    if (rank == 0) {
+        scatter_buf = malloc(size * sizeof(int));
+        for (int i = 0; i < size; i++)
+            scatter_buf[i] = (i + 1) * 10;
+    }
+
+
+    MPI_Scatter(scatter_buf, 1, MPI_INT, &scatter_val, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf("[rank %d] got after Scatter = %d\n", rank, scatter_val);
+
+
+    if (rank == 0) free(scatter_buf);
+
+
+    // -------------------- Gather --------------------
+    int my_val = rank * 10;
+    int *gather_buf = NULL;
+
+
+    if (rank == 0)
+        gather_buf = malloc(size * sizeof(int));
+
+
+    MPI_Gather(&my_val, 1, MPI_INT, gather_buf, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+
+    if (rank == 0) {
+        printf("Root gathered: ");
+        for (int i = 0; i < size; i++) printf("%d ", gather_buf[i]);
+        printf("\n");
+        free(gather_buf);
+    }
+
+
+    // -------------------- Reduce (Sum) --------------------
+    int local_sum = rank + 1;
+    int total_sum = 0;
+
+
+    MPI_Reduce(&local_sum, &total_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+
+    if (rank == 0)
+        printf("Sum using Reduce = %d\n", total_sum);
+
+
+    // -------------------- Allreduce (Max) --------------------
+    int local_val = rank * 2;
+    int global_max;
+
+
+    MPI_Allreduce(&local_val, &global_max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    printf("[rank %d] global max after Allreduce = %d\n", rank, global_max);
+
+
+    // -------------------- Scan (Prefix Sum) --------------------
+    int scan_out;
+    MPI_Scan(&rank, &scan_out, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    printf("[rank %d] prefix sum after Scan = %d\n", rank, scan_out);
+
+
+    MPI_Finalize();
+    return 0;
+}
+
+
+// mpicc program8.c -o program8
+// mpirun -np 4 ./program8

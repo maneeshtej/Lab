@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+
+#define MAX 10000000   // Max students supported
+
+
+int main() {
+    int n;
+    printf("Enter number of students (<= %d): ", MAX);
+    scanf("%d", &n);
+
+
+    if (n > MAX) {
+        printf("Error: exceeds max limit\n");
+        return 0;
+    }
+
+
+    float *cgpa = (float*)malloc(n * sizeof(float));
+    if (!cgpa) {
+        printf("Memory allocation failed\n");
+        return 0;
+    }
+
+
+    double start, end;
+
+
+    //-----------------------------------------------------------------
+    // Step 1: Generate random CGPA values in parallel
+    //-----------------------------------------------------------------
+    start = omp_get_wtime();
+
+
+    #pragma omp parallel for
+    for(int i = 0; i < n; i++) {
+        unsigned int seed = 1234 + i;
+        float r = (float)rand_r(&seed) / RAND_MAX;
+        cgpa[i] = r * 10.0f;  // range 0.0 to 10.0
+    }
+
+
+    end = omp_get_wtime();
+    printf("\nArray initialization time = %f sec\n", end - start);
+
+
+    //-----------------------------------------------------------------
+    // Method 1: Find max using critical section
+    //-----------------------------------------------------------------
+    float max_critical = 0.0;
+    start = omp_get_wtime();
+
+
+    #pragma omp parallel for
+    for(int i = 0; i < n; i++) {
+        #pragma omp critical
+        {
+            if(cgpa[i] > max_critical)
+                max_critical = cgpa[i];
+        }
+    }
+
+
+    end = omp_get_wtime();
+    printf("Max CGPA (critical) = %.4f, Time = %f sec\n",
+           max_critical, end - start);
+
+
+    //-----------------------------------------------------------------
+    // Method 2: Find max using reduction (max:var)
+    //-----------------------------------------------------------------
+    float max_reduction = 0.0;
+    start = omp_get_wtime();
+
+
+    #pragma omp parallel for reduction(max:max_reduction)
+    for(int i = 0; i < n; i++) {
+        if(cgpa[i] > max_reduction)
+            max_reduction = cgpa[i];
+    }
+
+
+    end = omp_get_wtime();
+    printf("Max CGPA (reduction) = %.4f, Time = %f sec\n",
+           max_reduction, end - start);
+
+
+    //-----------------------------------------------------------------
+    // Method 3: Sequential max
+    //-----------------------------------------------------------------
+    float max_seq = cgpa[0];
+    start = omp_get_wtime();
+
+
+    for(int i = 1; i < n; i++) {
+        if(cgpa[i] > max_seq)
+            max_seq = cgpa[i];
+    }
+
+
+    end = omp_get_wtime();
+    printf("Max CGPA (sequential) = %.4f, Time = %f sec\n",
+           max_seq, end - start);
+
+
+    //-----------------------------------------------------------------
+    // Done
+    //-----------------------------------------------------------------
+    free(cgpa);
+    return 0;
+}
+
+
+// gcc program5.c -fopenmp -o program5
+// ./program5

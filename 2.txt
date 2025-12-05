@@ -1,0 +1,83 @@
+// #include <stdio.h>
+// #include <omp.h>
+// int main() {
+//  // Item prices in each section
+//  int clothing[] = {500, 1000, 750}; // Rs
+//  int gaming[] = {1500, 2000}; // Rs
+//  int grocery[] = {100, 250, 300, 150}; // Rs
+//  int stationary[] = {50, 80, 40}; // Rs
+//  int n1 = 3, n2 = 2, n3 = 4, n4 = 3;
+//  int total_seq = 0, total_par = 0;
+//  double start, end, seq_time, par_time;
+//  // Sequential billing
+//  start = omp_get_wtime();
+//  for (int i = 0; i < n1; i++) total_seq += clothing[i];
+//  for (int i = 0; i < n2; i++) total_seq += gaming[i];
+//  for (int i = 0; i < n3; i++) total_seq += grocery[i];
+//  for (int i = 0; i < n4; i++) total_seq += stationary[i];
+//  end = omp_get_wtime();
+//  seq_time = end - start;
+//  // Parallel billing
+//  start = omp_get_wtime();
+//  #pragma omp parallel sections reduction(+:total_par)
+//  {
+//  #pragma omp section
+//  for (int i = 0; i < n1; i++) total_par += clothing[i];
+//  #pragma omp section
+//  for (int i = 0; i < n2; i++) total_par += gaming[i];
+//  #pragma omp section
+//  for (int i = 0; i < n3; i++) total_par += grocery[i];
+//  #pragma omp section
+//  for (int i = 0; i < n4; i++) total_par += stationary[i];
+//  }
+//  end = omp_get_wtime();
+//  par_time = end - start;
+//  // Results
+//  printf("Sequential Total: %d, Time: %lf sec\n", total_seq, seq_time);
+//  printf("Parallel Total: %d, Time: %lf sec\n", total_par, par_time);
+//  printf("Speedup: %lf\n", seq_time / par_time);
+//  return 0;
+// }
+
+
+
+
+
+
+#include <stdio.h>
+#include <omp.h>
+int main() {
+ int clothing[] = {500, 700, 800, 600};
+ int gaming[] = {2000, 1500, 3000};
+ int grocery[] = {200, 300, 150, 100, 50};
+ int stationary[] = {50, 100, 150};
+ int total = 0;
+ double start, end;
+ start = omp_get_wtime(); // Start timing
+ for (int i = 0; i < 4; i++)
+ total += clothing[i];
+ for (int i = 0; i < 3; i++)
+ total += gaming[i];
+ for (int i = 0; i < 5; i++)
+ total += grocery[i];
+ for (int i = 0; i < 3; i++)
+ total += stationary[i];
+ #pragma omp parallel for reduction(+:total)
+ for (int section = 0; section < 4; section++) {
+ int sum = 0;
+ if (section == 0)
+ for (int i = 0; i < 4; i++) sum += clothing[i];
+ else if (section == 1)
+ for (int i = 0; i < 3; i++) sum += gaming[i];
+ else if (section == 2)
+ for (int i = 0; i < 5; i++) sum += grocery[i];
+ else if (section == 3)
+ for (int i = 0; i < 3; i++) sum += stationary[i];
+ total += sum;
+ }
+
+ end = omp_get_wtime (); // End timing
+ printf("Final Bill Amount = %d\n", total);
+ printf("Time Taken = %f seconds\n", end - start);
+ return 0;
+}
