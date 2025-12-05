@@ -1,0 +1,998 @@
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <omp.h>
+// int main() {
+//  int n = 2000; // Large enough to see parallel benefit
+//  double **matrix, *vector, *result;
+//  int i, j;
+//  // Allocate memory
+//  matrix = (double **)malloc(n * sizeof(double *));
+//  for (i = 0; i < n; i++)
+//  matrix[i] = (double *)malloc(n * sizeof(double));
+//  vector = (double *)malloc(n * sizeof(double));
+//  result = (double *)malloc(n * sizeof(double));
+//  // Initialize matrix and vector
+//  for (i = 0; i < n; i++) {
+//  vector[i] = 1.0;
+//  for (j = 0; j < n; j++)
+//  matrix[i][j] = 1.0;
+//  }
+//  // Sequential execution
+//  double start = omp_get_wtime();
+//  for (i = 0; i < n; i++) {
+//  double sum = 0.0;
+//  for (j = 0; j < n; j++)
+//  sum += matrix[i][j] * vector[j];
+//  result[i] = sum;
+//  }
+//  double end = omp_get_wtime();
+//  printf("Sequential Time: %f seconds\n", end - start);
+//  // Parallel execution
+//  start = omp_get_wtime();
+//  #pragma omp parallel for private(j) schedule(static)
+//  for (i = 0; i < n; i++) {
+//  double sum = 0.0;
+//  for (j = 0; j < n; j++)
+//  sum += matrix[i][j] * vector[j];
+//  result[i] = sum;
+//  }
+//  end = omp_get_wtime();
+//  printf("Parallel Time: %f seconds\n", end - start);
+//  // Free memory
+//  for (i = 0; i < n; i++)
+//  free(matrix[i]);
+//  free(matrix);
+//  free(vector);
+//  free(result);
+//  return 0;
+// }
+
+
+
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+int main() {
+ int n = 2000; // Large enough to see parallel benefit
+ double **matrix, *vector, *result;
+ int i, j;
+ // Allocate memory
+ matrix = (double **)malloc(n * sizeof(double *));
+ for (i = 0; i < n; i++)
+ matrix[i] = (double *)malloc(n * sizeof(double));
+ vector = (double *)malloc(n * sizeof(double));
+ result = (double *)malloc(n * sizeof(double));
+ // Initialize matrix and vector
+ for (i = 0; i < n; i++) {
+ vector[i] = 2.0;
+ for (j = 0; j < n; j++)
+ matrix[i][j] = 2.0;
+ }
+ // Sequential execution
+ double start = omp_get_wtime();
+ for (i = 0; i < n; i++) {
+ double sum = 0.0;
+ for (j = 0; j < n; j++)
+ sum += matrix[i][j] * vector[j];
+ result[i] = sum;
+ }
+ double end = omp_get_wtime();
+ printf("Sequential Time: %f seconds\n", end - start);
+ // Print first 10 values of result (Sequential)
+ printf("Sequential result (first 10 values): ");
+ for (i = 0; i < 10; i++)
+ printf("%0.2f ", result[i]);
+ printf("\n");
+ // Parallel execution
+ start = omp_get_wtime();
+ #pragma omp parallel for private(j) schedule(static)
+ for (i = 0; i < n; i++) {
+ double sum = 0.0;
+ for (j = 0; j < n; j++)
+ sum += matrix[i][j] * vector[j];
+ result[i] = sum;
+ }
+ end = omp_get_wtime();
+ printf("Parallel Time: %f seconds\n", end - start);
+ // Print first 10 values of result (Parallel)
+ printf("Parallel result (first 10 values): ");
+ for (i = 0; i < 10; i++)
+ printf("%0.2f ", result[i]);
+ printf("\n");
+ // Free memory
+ for (i = 0; i < n; i++)
+ free(matrix[i]);
+ free(matrix);
+ free(vector);
+ free(result);
+ return 0;
+}// #include <stdio.h>
+// #include <omp.h>
+// int main() {
+//  // Item prices in each section
+//  int clothing[] = {500, 1000, 750}; // Rs
+//  int gaming[] = {1500, 2000}; // Rs
+//  int grocery[] = {100, 250, 300, 150}; // Rs
+//  int stationary[] = {50, 80, 40}; // Rs
+//  int n1 = 3, n2 = 2, n3 = 4, n4 = 3;
+//  int total_seq = 0, total_par = 0;
+//  double start, end, seq_time, par_time;
+//  // Sequential billing
+//  start = omp_get_wtime();
+//  for (int i = 0; i < n1; i++) total_seq += clothing[i];
+//  for (int i = 0; i < n2; i++) total_seq += gaming[i];
+//  for (int i = 0; i < n3; i++) total_seq += grocery[i];
+//  for (int i = 0; i < n4; i++) total_seq += stationary[i];
+//  end = omp_get_wtime();
+//  seq_time = end - start;
+//  // Parallel billing
+//  start = omp_get_wtime();
+//  #pragma omp parallel sections reduction(+:total_par)
+//  {
+//  #pragma omp section
+//  for (int i = 0; i < n1; i++) total_par += clothing[i];
+//  #pragma omp section
+//  for (int i = 0; i < n2; i++) total_par += gaming[i];
+//  #pragma omp section
+//  for (int i = 0; i < n3; i++) total_par += grocery[i];
+//  #pragma omp section
+//  for (int i = 0; i < n4; i++) total_par += stationary[i];
+//  }
+//  end = omp_get_wtime();
+//  par_time = end - start;
+//  // Results
+//  printf("Sequential Total: %d, Time: %lf sec\n", total_seq, seq_time);
+//  printf("Parallel Total: %d, Time: %lf sec\n", total_par, par_time);
+//  printf("Speedup: %lf\n", seq_time / par_time);
+//  return 0;
+// }
+
+
+
+
+
+
+#include <stdio.h>
+#include <omp.h>
+int main() {
+ int clothing[] = {500, 700, 800, 600};
+ int gaming[] = {2000, 1500, 3000};
+ int grocery[] = {200, 300, 150, 100, 50};
+ int stationary[] = {50, 100, 150};
+ int total = 0;
+ double start, end;
+ start = omp_get_wtime(); // Start timing
+ for (int i = 0; i < 4; i++)
+ total += clothing[i];
+ for (int i = 0; i < 3; i++)
+ total += gaming[i];
+ for (int i = 0; i < 5; i++)
+ total += grocery[i];
+ for (int i = 0; i < 3; i++)
+ total += stationary[i];
+ #pragma omp parallel for reduction(+:total)
+ for (int section = 0; section < 4; section++) {
+ int sum = 0;
+ if (section == 0)
+ for (int i = 0; i < 4; i++) sum += clothing[i];
+ else if (section == 1)
+ for (int i = 0; i < 3; i++) sum += gaming[i];
+ else if (section == 2)
+ for (int i = 0; i < 5; i++) sum += grocery[i];
+ else if (section == 3)
+ for (int i = 0; i < 3; i++) sum += stationary[i];
+ total += sum;
+ }
+
+ end = omp_get_wtime (); // End timing
+ printf("Final Bill Amount = %d\n", total);
+ printf("Time Taken = %f seconds\n", end - start);
+ return 0;
+}//Using reduction
+// #include <stdio.h>
+// #include <omp.h>
+// int main() {
+//  long num_steps = 1000000000; // 1 billion steps for better accuracy
+//  double step, x, sum = 0.0;
+//  double start_time, end_time;
+//  step = 1.0 / (double) num_steps;
+//  start_time = omp_get_wtime(); // Start timing
+//  #pragma omp parallel for private(x) reduction(+:sum)
+//  for (long i = 0; i < num_steps; i++) {
+//  x = (i + 0.5) * step;
+//  sum += 4.0 / (1.0 + x * x);
+//  }
+//  double pi = step * sum;
+//  end_time = omp_get_wtime(); // End timing
+//  printf("Approximated Pi = %.15f\n", pi);
+//  printf("Time taken = %f seconds\n", end_time - start_time);
+//  return 0;
+// }
+
+
+// // Using Atomic :
+// #include <stdio.h>
+// #include <omp.h>
+// int main() {
+//  long num_steps = 100000000;
+//  double step = 1.0 / (double)num_steps;
+//  double sum = 0.0;
+//  double start_time, end_time;
+//  start_time = omp_get_wtime();
+//  #pragma omp parallel
+//  {
+//  double x, local_sum = 0.0;
+//  #pragma omp for
+//  for (long i = 0; i < num_steps; i++) {
+//  x = (i + 0.5) * step;
+//  local_sum += 4.0 / (1.0 + x * x);
+//  }
+//  #pragma omp atomic
+//  sum += local_sum;
+//  }
+//  double pi = step * sum;
+//  end_time = omp_get_wtime();
+//  printf("Parallel PI = %.15f\n", pi);
+//  printf("Time taken: %f seconds\n", end_time - start_time);
+//  return 0;
+// }
+
+
+
+// // Using Critical
+#include <stdio.h>
+#include <omp.h>
+static long num_steps = 1000000;
+double step;
+int main() {
+ int i;
+ double x, pi = 0.0, sum = 0.0;
+ step = 1.0 / (double)num_steps;
+ double start_time = omp_get_wtime(); // Start timer
+ #pragma omp parallel
+ {
+ double local_sum = 0.0;
+
+ #pragma omp for
+ for (i = 0; i < num_steps; i++) {
+ x = (i + 0.5) * step;
+ local_sum = 4.0 / (1.0 + x * x);
+ // Use critical section to avoid race condition
+ #pragma omp critical
+ {
+ sum += local_sum;
+ }
+ }
+ }
+ pi = step * sum;
+ double end_time = omp_get_wtime(); // End timer
+ printf("Computed value of Pi = %.15f\n", pi);
+ printf("Time taken = %f seconds\n", end_time - start_time);
+ return 0;
+}
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+// ===============================================
+// 1️⃣ PARALLEL + SINGLE
+// ===============================================
+void fib_single(int n) {
+    int *a = malloc(n * sizeof(int));
+    a[0] = 0;
+    a[1] = 1;
+
+    double st = omp_get_wtime();
+    omp_set_num_threads(2);
+
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            printf("\n[SINGLE] Compute Thread: %d\n", omp_get_thread_num());
+            for (int i = 2; i < n; i++)
+                a[i] = a[i - 2] + a[i - 1];
+        }
+
+        #pragma omp single
+        {
+            printf("[SINGLE] Display Thread: %d\n", omp_get_thread_num());
+            printf("Fibonacci: ");
+            for (int i = 0; i < n; i++)
+                printf("%d ", a[i]);
+            printf("\n");
+        }
+    }
+
+    double et = omp_get_wtime();
+    printf("[SINGLE] Time: %lf ms\n", (et - st) * 1000);
+    free(a);
+}
+
+// ===============================================
+// 2️⃣ PARALLEL + SECTIONS
+// (No barrier — invalid inside sections)
+// ===============================================
+void fib_sections(int n) {
+    int *a = malloc(n * sizeof(int));
+    a[0] = 0;
+    a[1] = 1;
+
+    double st = omp_get_wtime();
+    omp_set_num_threads(2);
+
+    #pragma omp parallel
+    {
+        #pragma omp sections
+        {
+            #pragma omp section
+            {
+                printf("\n[SECTIONS] Compute Thread: %d\n", omp_get_thread_num());
+                for (int i = 2; i < n; i++)
+                    a[i] = a[i - 2] + a[i - 1];
+            }
+
+            #pragma omp section
+            {
+                // Just prints — may run early
+                printf("[SECTIONS] Display Thread: %d\n", omp_get_thread_num());
+                printf("Fibonacci (may show zeros if race): ");
+                for (int i = 0; i < n; i++)
+                    printf("%d ", a[i]);
+                printf("\n");
+            }
+        }
+    }
+
+    double et = omp_get_wtime();
+    printf("[SECTIONS] Time: %lf ms\n", (et - st) * 1000);
+    free(a);
+}
+
+// ===============================================
+// 3️⃣ PARALLEL + CRITICAL
+// ===============================================
+void fib_critical(int n) {
+    int *a = malloc(n * sizeof(int));
+    a[0] = 0;
+    a[1] = 1;
+
+    double st = omp_get_wtime();
+    omp_set_num_threads(2);
+
+    #pragma omp parallel
+    {
+        int tid = omp_get_thread_num();
+
+        if (tid == 0) {
+            #pragma omp critical
+            {
+                printf("\n[CRITICAL] Compute Thread: %d\n", tid);
+                for (int i = 2; i < n; i++)
+                    a[i] = a[i - 2] + a[i - 1];
+            }
+        }
+
+        // Wait for compute to finish
+        #pragma omp barrier
+
+        if (tid == 1) {
+            #pragma omp critical
+            {
+                printf("[CRITICAL] Display Thread: %d\n", tid);
+                printf("Fibonacci: ");
+                for (int i = 0; i < n; i++)
+                    printf("%d ", a[i]);
+                printf("\n");
+            }
+        }
+    }
+
+    double et = omp_get_wtime();
+    printf("[CRITICAL] Time: %lf ms\n", (et - st) * 1000);
+    free(a);
+}
+
+
+// ===============================================
+// MAIN DRIVER
+// ===============================================
+int main() {
+    int n;
+    printf("Enter Fibonacci terms: ");
+    scanf("%d", &n);
+
+    if (n < 2) {
+        printf("Enter at least 2\n");
+        return 0;
+    }
+
+    printf("\n========== USING SINGLE ==========\n");
+    fib_single(n);
+
+    printf("\n========== USING SECTIONS ==========\n");
+    fib_sections(n);
+
+    printf("\n========== USING CRITICAL ==========\n");
+    fib_critical(n);
+
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+
+
+#define MAX 10000000   // Max students supported
+
+
+int main() {
+    int n;
+    printf("Enter number of students (<= %d): ", MAX);
+    scanf("%d", &n);
+
+
+    if (n > MAX) {
+        printf("Error: exceeds max limit\n");
+        return 0;
+    }
+
+
+    float *cgpa = (float*)malloc(n * sizeof(float));
+    if (!cgpa) {
+        printf("Memory allocation failed\n");
+        return 0;
+    }
+
+
+    double start, end;
+
+
+    //-----------------------------------------------------------------
+    // Step 1: Generate random CGPA values in parallel
+    //-----------------------------------------------------------------
+    start = omp_get_wtime();
+
+
+    #pragma omp parallel for
+    for(int i = 0; i < n; i++) {
+        unsigned int seed = 1234 + i;
+        float r = (float)rand_r(&seed) / RAND_MAX;
+        cgpa[i] = r * 10.0f;  // range 0.0 to 10.0
+    }
+
+
+    end = omp_get_wtime();
+    printf("\nArray initialization time = %f sec\n", end - start);
+
+
+    //-----------------------------------------------------------------
+    // Method 1: Find max using critical section
+    //-----------------------------------------------------------------
+    float max_critical = 0.0;
+    start = omp_get_wtime();
+
+
+    #pragma omp parallel for
+    for(int i = 0; i < n; i++) {
+        #pragma omp critical
+        {
+            if(cgpa[i] > max_critical)
+                max_critical = cgpa[i];
+        }
+    }
+
+
+    end = omp_get_wtime();
+    printf("Max CGPA (critical) = %.4f, Time = %f sec\n",
+           max_critical, end - start);
+
+
+    //-----------------------------------------------------------------
+    // Method 2: Find max using reduction (max:var)
+    //-----------------------------------------------------------------
+    float max_reduction = 0.0;
+    start = omp_get_wtime();
+
+
+    #pragma omp parallel for reduction(max:max_reduction)
+    for(int i = 0; i < n; i++) {
+        if(cgpa[i] > max_reduction)
+            max_reduction = cgpa[i];
+    }
+
+
+    end = omp_get_wtime();
+    printf("Max CGPA (reduction) = %.4f, Time = %f sec\n",
+           max_reduction, end - start);
+
+
+    //-----------------------------------------------------------------
+    // Method 3: Sequential max
+    //-----------------------------------------------------------------
+    float max_seq = cgpa[0];
+    start = omp_get_wtime();
+
+
+    for(int i = 1; i < n; i++) {
+        if(cgpa[i] > max_seq)
+            max_seq = cgpa[i];
+    }
+
+
+    end = omp_get_wtime();
+    printf("Max CGPA (sequential) = %.4f, Time = %f sec\n",
+           max_seq, end - start);
+
+
+    //-----------------------------------------------------------------
+    // Done
+    //-----------------------------------------------------------------
+    free(cgpa);
+    return 0;
+}
+
+
+// gcc program5.c -fopenmp -o program5
+// ./program5#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <omp.h>
+#include <math.h>
+
+
+// Allocate matrix
+double **allocate_matrix(int N) {
+    double **mat = malloc(N * sizeof(double *));
+    for (int i = 0; i < N; i++)
+        mat[i] = malloc(N * sizeof(double));
+    return mat;
+}
+
+
+// Free matrix
+void free_matrix(double **mat, int N) {
+    for (int i = 0; i < N; i++)
+        free(mat[i]);
+    free(mat);
+}
+
+
+// Initialize matrix with random values
+void initialize_matrix(double **mat, int N) {
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            mat[i][j] = (rand() / (double)RAND_MAX) * 10.0;
+}
+
+
+// Sequential multiplication
+void matmul_seq(double **A, double **B, double **C, int N) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            double sum = 0.0;
+            for (int k = 0; k < N; k++)
+                sum += A[i][k] * B[k][j];
+            C[i][j] = sum;
+        }
+    }
+}
+
+
+// Parallel without collapse
+void matmul_parallel_no_collapse(double **A, double **B, double **C,
+                                 int N, const char* schedule_type, int chunk) {
+
+
+    omp_sched_t sched;
+    if (strcmp(schedule_type,"static") == 0)      sched = omp_sched_static;
+    else if (strcmp(schedule_type,"dynamic") == 0) sched = omp_sched_dynamic;
+    else if (strcmp(schedule_type,"guided") == 0)  sched = omp_sched_guided;
+    else sched = omp_sched_static;
+
+
+    omp_set_schedule(sched, chunk);
+
+
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(runtime) nowait
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                double sum = 0.0;
+                for (int k = 0; k < N; k++)
+                    sum += A[i][k] * B[k][j];
+                C[i][j] = sum;
+            }
+        }
+    }
+}
+
+
+// Parallel with collapse(2)
+void matmul_parallel_collapse(double **A, double **B, double **C,
+                              int N, const char* schedule_type, int chunk) {
+
+
+    omp_sched_t sched;
+    if (strcmp(schedule_type,"static") == 0)      sched = omp_sched_static;
+    else if (strcmp(schedule_type,"dynamic") == 0) sched = omp_sched_dynamic;
+    else if (strcmp(schedule_type,"guided") == 0)  sched = omp_sched_guided;
+    else sched = omp_sched_static;
+
+
+    omp_set_schedule(sched, chunk);
+
+
+    #pragma omp parallel
+    {
+        #pragma omp for collapse(2) schedule(runtime) nowait
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                double sum = 0.0;
+                for (int k = 0; k < N; k++)
+                    sum += A[i][k] * B[k][j];
+                C[i][j] = sum;
+            }
+        }
+    }
+}
+
+
+// Compare matrix results for correctness
+int compare(double **M1, double **M2, int N) {
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            if (fabs(M1[i][j] - M2[i][j]) > 1e-6) return 0;
+    return 1;
+}
+
+
+int main() {
+    int N;
+    char schedule_type[10];
+    int chunk;
+
+
+    printf("Enter matrix size (e.g., 500, 1000, 1500): ");
+    scanf("%d", &N);
+
+
+    printf("Enter schedule type (static/dynamic/guided): ");
+    scanf("%s", schedule_type);
+
+
+    printf("Enter chunk size: ");
+    scanf("%d", &chunk);
+
+
+    double **A = allocate_matrix(N);
+    double **B = allocate_matrix(N);
+    double **C_seq = allocate_matrix(N);
+    double **C_par = allocate_matrix(N);
+    double **C_par2 = allocate_matrix(N);
+
+
+    initialize_matrix(A, N);
+    initialize_matrix(B, N);
+
+
+    double start, end;
+
+
+    // Sequential
+    start = omp_get_wtime();
+    matmul_seq(A, B, C_seq, N);
+    end = omp_get_wtime();
+    printf("\nSequential Time = %f seconds\n", end - start);
+
+
+    // Parallel no collapse
+    start = omp_get_wtime();
+    matmul_parallel_no_collapse(A, B, C_par, N, schedule_type, chunk);
+    end = omp_get_wtime();
+    printf("Parallel (no collapse) Time = %f seconds\n", end - start);
+
+
+    // Parallel with collapse
+    start = omp_get_wtime();
+    matmul_parallel_collapse(A, B, C_par2, N, schedule_type, chunk);
+    end = omp_get_wtime();
+    printf("Parallel (collapse(2)) Time = %f seconds\n", end - start);
+
+
+    // Validate
+    printf("\nNo-collapse correct? %s\n", compare(C_seq, C_par, N) ? "YES" : "NO");
+    printf("Collapse correct? %s\n", compare(C_seq, C_par2, N) ? "YES" : "NO");
+
+
+    free_matrix(A, N);
+    free_matrix(B, N);
+    free_matrix(C_seq, N);
+    free_matrix(C_par, N);
+    free_matrix(C_par2, N);
+
+
+    return 0;
+}#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int main(int argc, char *argv[]) {
+
+    MPI_Init(&argc, &argv);
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // Different random seed per process
+    srand(time(NULL) + rank * 123);
+
+    // Each robot picks between 5 and 20 mangoes
+    int mangoes_picked = 5 + (rand() % 16);
+
+    printf("Robot %d picked %d mangoes\n", rank, mangoes_picked);
+
+    // Reduce locally picked mangoes to root
+    int total_mangoes = 0;
+    MPI_Reduce(&mangoes_picked, &total_mangoes,
+               1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        printf("\nTotal mangoes picked by %d robots = %d\n",
+               size, total_mangoes);
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+int main(int argc, char *argv[]) {
+
+
+    MPI_Init(&argc, &argv);
+
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+    if (rank == 0)
+        printf("MPI Collectives Demo with %d processes\n\n", size);
+
+
+    // -------------------- Broadcast --------------------
+    int bcast_val = 0;
+    if (rank == 0) bcast_val = 123;
+    MPI_Bcast(&bcast_val, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf("[rank %d] got after Bcast = %d\n", rank, bcast_val);
+
+
+    // -------------------- Scatter --------------------
+    int scatter_val;
+    int *scatter_buf = NULL;
+
+
+    if (rank == 0) {
+        scatter_buf = malloc(size * sizeof(int));
+        for (int i = 0; i < size; i++)
+            scatter_buf[i] = (i + 1) * 10;
+    }
+
+
+    MPI_Scatter(scatter_buf, 1, MPI_INT, &scatter_val, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf("[rank %d] got after Scatter = %d\n", rank, scatter_val);
+
+
+    if (rank == 0) free(scatter_buf);
+
+
+    // -------------------- Gather --------------------
+    int my_val = rank * 10;
+    int *gather_buf = NULL;
+
+
+    if (rank == 0)
+        gather_buf = malloc(size * sizeof(int));
+
+
+    MPI_Gather(&my_val, 1, MPI_INT, gather_buf, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+
+    if (rank == 0) {
+        printf("Root gathered: ");
+        for (int i = 0; i < size; i++) printf("%d ", gather_buf[i]);
+        printf("\n");
+        free(gather_buf);
+    }
+
+
+    // -------------------- Reduce (Sum) --------------------
+    int local_sum = rank + 1;
+    int total_sum = 0;
+
+
+    MPI_Reduce(&local_sum, &total_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+
+    if (rank == 0)
+        printf("Sum using Reduce = %d\n", total_sum);
+
+
+    // -------------------- Allreduce (Max) --------------------
+    int local_val = rank * 2;
+    int global_max;
+
+
+    MPI_Allreduce(&local_val, &global_max, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    printf("[rank %d] global max after Allreduce = %d\n", rank, global_max);
+
+
+    // -------------------- Scan (Prefix Sum) --------------------
+    int scan_out;
+    MPI_Scan(&rank, &scan_out, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    printf("[rank %d] prefix sum after Scan = %d\n", rank, scan_out);
+
+
+    MPI_Finalize();
+    return 0;
+}
+
+
+// mpicc program8.c -o program8
+// mpirun -np 4 ./program8#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+int main(int argc, char *argv[]) {
+
+
+    MPI_Init(&argc, &argv);
+
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+    // Let MPI decide best grid dimensions for 2D topology
+    int dims[2] = {0, 0};
+    MPI_Dims_create(size, 2, dims);
+
+
+    int periods[2] = {0, 0};    // No wrap-around (non-periodic grid)
+    int reorder = 1;            // Allow MPI to reorder ranks for efficiency
+
+
+    MPI_Comm cart_comm;
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, reorder, &cart_comm);
+
+
+    if (cart_comm == MPI_COMM_NULL) {
+        if (rank == 0)
+            printf("Could not create Cartesian topology\n");
+        MPI_Finalize();
+        return 0;
+    }
+
+
+    // Get coordinates in the 2D grid
+    int coords[2];
+    MPI_Cart_coords(cart_comm, rank, 2, coords);
+    printf("[Rank %d] coords = (%d, %d)\n", rank, coords[0], coords[1]);
+
+
+    // Find neighbors: up, down, left, right
+    int up, down, left, right;
+
+
+    MPI_Cart_shift(cart_comm, 0, 1, &up,  &down);  // Vertical move: rows
+    MPI_Cart_shift(cart_comm, 1, 1, &left, &right); // Horizontal move: columns
+
+
+    printf("[Rank %d] neighbors -> up: %d, down: %d, left: %d, right: %d\n",
+           rank, up, down, left, right);
+
+
+    MPI_Finalize();
+    return 0;
+}
+
+
+
+
+// mpicc program9.c -o program9
+// mpirun -np 4 ./program9
+
+
+
+
+
+
+// mpirun -np 4 ./program9
+// mpirun -np 6 ./program9
+// mpirun -np 9 ./program9#include <mpi.h>
+#include <stdio.h>
+
+
+int main(int argc, char *argv[]) {
+
+
+    MPI_Init(&argc, &argv);
+
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+    if (size < 2) {
+        if (rank == 0) printf("Run with at least 2 processes\n");
+        MPI_Finalize();
+        return 0;
+    }
+
+
+    int send_val, recv_val;
+
+
+    // ----------------------- Blocking Communication -----------------------
+    if (rank == 0) {
+        send_val = 100;
+        printf("\n[Blocking] Rank 0 sending %d to Rank 1...\n", send_val);
+        MPI_Send(&send_val, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+    }
+    else if (rank == 1) {
+        MPI_Recv(&recv_val, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        printf("[Blocking] Rank 1 received %d from Rank 0\n", recv_val);
+    }
+
+
+    MPI_Barrier(MPI_COMM_WORLD); // sync before non-blocking
+
+
+    // ----------------------- Non-Blocking Communication -----------------------
+    if (rank == 0) {
+        send_val = 300;
+        MPI_Request reqs[2];
+        printf("\n[Non-Blocking] Rank 0 sending %d to Rank 1...\n", send_val);
+
+
+        MPI_Isend(&send_val, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, &reqs[0]);
+
+
+        MPI_Waitall(2, reqs, MPI_STATUSES_IGNORE);
+    }
+    else if (rank == 1) {
+        MPI_Request reqs[2];
+
+
+        MPI_Irecv(&recv_val, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &reqs[0]);
+        MPI_Wait(&reqs[0], MPI_STATUS_IGNORE);
+        printf("[Non-Blocking] Rank 1 received %d from Rank 0\n", recv_val);
+
+
+    }
+
+
+    MPI_Finalize();
+    return 0;
+}
+
+
+// mpicc program10.c -o program10
+// mpirun -np 2 ./program10
